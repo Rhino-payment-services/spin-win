@@ -71,8 +71,8 @@ export default function Home() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-4 sm:mb-6 lg:mb-8 xl:mb-12">
-          <div className="mb-3 sm:mb-6">
-            <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 mb-3 sm:mb-4">
+          <div className="mb-3 sm:mb-6 hidden sm:block">
+            <div className="inline-flex items-center justify-center w-16 h-16 lg:w-20 lg:h-20 mb-3 sm:mb-4">
               <div className="rukapay-logo">
                 <div className="logo-circle">
                   <div className="logo-r">R</div>
@@ -89,7 +89,7 @@ export default function Home() {
           <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600 mb-3 sm:mb-4 px-4">
             Tap to pay, the Ugandan way. Spin the wheel and win amazing prizes!
           </p>
-          <div className="inline-flex items-center px-3 sm:px-4 lg:px-6 py-2 sm:py-3 bg-blue-50 rounded-full shadow-sm border border-blue-200 mx-4">
+          <div className="inline-flex items-center px-3 sm:px-4 lg:px-6 py-2 sm:py-3 bg-blue-50 rounded-full shadow-none sm:shadow-sm border border-blue-200 mx-4">
             <span className="text-blue-900 font-semibold text-xs sm:text-sm lg:text-base">Spins remaining:</span>
             <span className="ml-2 text-lg sm:text-xl lg:text-2xl font-bold text-blue-900">
               ∞
@@ -101,7 +101,7 @@ export default function Home() {
         <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8 xl:gap-12 items-center lg:items-start justify-center">
           {/* Wheel Container */}
           <div className="flex-shrink-0 w-full max-w-sm sm:max-w-md lg:max-w-none">
-            <div className="bg-white rounded-xl sm:rounded-2xl lg:rounded-3xl p-3 sm:p-4 lg:p-6 xl:p-8 shadow-lg sm:shadow-xl border border-gray-200">
+            <div className="bg-white rounded-xl sm:rounded-2xl lg:rounded-3xl p-3 sm:p-4 lg:p-6 xl:p-8 shadow-none sm:shadow-lg lg:shadow-xl border border-gray-200">
               <SpinningWheel
                 prizes={prizes}
                 isSpinning={isSpinning}
@@ -116,7 +116,7 @@ export default function Home() {
                   className={`w-full sm:w-auto px-5 sm:px-6 lg:px-8 xl:px-12 py-2.5 sm:py-3 lg:py-4 text-base sm:text-lg lg:text-xl xl:text-2xl font-bold rounded-lg sm:rounded-xl lg:rounded-2xl transition-all duration-300 ${
                     isSpinning
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-blue-900 text-white hover:bg-blue-800 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg'
+                      : 'bg-blue-900 text-white hover:bg-blue-800 hover:scale-105 active:scale-95 shadow-none sm:shadow-md hover:shadow-lg'
                   }`}
                 >
                   {isSpinning ? 'Spinning...' : 'SPIN!'}
