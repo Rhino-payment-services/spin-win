@@ -55,36 +55,46 @@ export default function Home() {
 
   // Check if device has already spun on mount
   useEffect(() => {
-    // Set client-side flag
-    setIsClient(true)
-    
-    const fingerprint = generateDeviceFingerprint()
-    setDeviceId(fingerprint)
-    
-    // Check with backend if this device has already spun
-    const checkDeviceStatus = async () => {
-      try {
-        const response = await fetch('/api/spin', {
-          method: 'GET',
-          headers: {
-            'X-Device-ID': fingerprint
+    try {
+      // Set client-side flag
+      setIsClient(true)
+      
+      const fingerprint = generateDeviceFingerprint()
+      setDeviceId(fingerprint)
+      
+      // Check with backend if this device has already spun
+      const checkDeviceStatus = async () => {
+        try {
+          const response = await fetch('/api/spin', {
+            method: 'GET',
+            headers: {
+              'X-Device-ID': fingerprint
+            }
+          })
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`)
           }
-        })
-        
-        const data = await response.json()
-        const hasSpun = data.deviceHasSpun || false
-        
-        if (hasSpun) {
-          setDeviceHasSpun(true)
-          setSpinsUsed(1)
-          setSpinsRemaining(0)
+          
+          const data = await response.json()
+          console.log('Device status response:', data)
+          
+          const hasSpun = data?.deviceHasSpun || false
+          
+          if (hasSpun) {
+            setDeviceHasSpun(true)
+            setSpinsUsed(1)
+            setSpinsRemaining(0)
+          }
+        } catch (error) {
+          console.error('Error checking device status:', error)
         }
-      } catch (error) {
-        console.error('Error checking device status:', error)
       }
+      
+      checkDeviceStatus()
+    } catch (error) {
+      console.error('Error in useEffect:', error)
     }
-    
-    checkDeviceStatus()
   }, [])
 
   const prizes = [
@@ -98,29 +108,33 @@ export default function Home() {
   ]
 
   const handleSpin = async () => {
-    // Check if device has already spun
-    if (deviceHasSpun || spinsUsed >= 1 || isSpinning) return
-
-    console.log('Starting spin...', { spinsUsed, isSpinning, deviceId })
-    setIsSpinning(true)
-
     try {
+      // Check if device has already spun
+      if (deviceHasSpun || spinsUsed >= 1 || isSpinning) return
+
+      console.log('Starting spin...', { spinsUsed, isSpinning, deviceId })
+      setIsSpinning(true)
+
       const response = await fetch('/api/spin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Device-ID': deviceId
+          'X-Device-ID': deviceId || ''
         },
         body: JSON.stringify({ spinsUsed, deviceId }),
       })
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
       const data = await response.json()
       console.log('API response:', data)
 
-      if (response.ok) {
-        setWinningPrize(data.prize)
-        setPrizeCounts(data.prizeCounts)
-        setSpinsRemaining(data.spinsRemaining)
+      if (data && typeof data === 'object') {
+        setWinningPrize(data.prize || '')
+        setPrizeCounts(data.prizeCounts || {})
+        setSpinsRemaining(data.spinsRemaining || 0)
         setSpinsUsed(spinsUsed + 1)
         
         // Mark device as having spun
@@ -132,8 +146,7 @@ export default function Home() {
           setShowResult(true)
         }, 4000)
       } else {
-        setIsSpinning(false)
-        alert(data.error || 'Failed to spin')
+        throw new Error('Invalid response data')
       }
     } catch (error) {
       console.error('Spin error:', error)
