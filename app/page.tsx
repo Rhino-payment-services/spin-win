@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 
 export default function HomePage() {
-  const [isClient, setIsClient] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const [deviceId, setDeviceId] = useState('')
   const [deviceHasSpun, setDeviceHasSpun] = useState(false)
   const [isSpinning, setIsSpinning] = useState(false)
@@ -11,17 +11,15 @@ export default function HomePage() {
   const [showResult, setShowResult] = useState(false)
 
   useEffect(() => {
-    console.log('HomePage useEffect running')
-    setIsClient(true)
+    setMounted(true)
     
-    // Simple device ID generation
+    // Generate device ID
     const fingerprint = `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     setDeviceId(fingerprint)
     
     // Check device status
     const checkDeviceStatus = async () => {
       try {
-        console.log('Checking device status...')
         const response = await fetch('/api/spin', {
           method: 'GET',
           headers: {
@@ -29,11 +27,8 @@ export default function HomePage() {
           }
         })
         
-        console.log('Device status response:', response.status)
-        
         if (response.ok) {
           const data = await response.json()
-          console.log('Device status data:', data)
           setDeviceHasSpun(data.deviceHasSpun || false)
         }
       } catch (error) {
@@ -45,14 +40,8 @@ export default function HomePage() {
   }, [])
 
   const handleSpin = async () => {
-    console.log('handleSpin called')
-    
-    if (deviceHasSpun || isSpinning) {
-      console.log('Cannot spin:', { deviceHasSpun, isSpinning })
-      return
-    }
+    if (deviceHasSpun || isSpinning) return
 
-    console.log('Starting spin...')
     setIsSpinning(true)
 
     try {
@@ -65,11 +54,8 @@ export default function HomePage() {
         body: JSON.stringify({ spinsUsed: 0, deviceId }),
       })
 
-      console.log('Spin response status:', response.status)
-
       if (response.ok) {
         const data = await response.json()
-        console.log('Spin data:', data)
         setWinningPrize(data.prize || '')
         setDeviceHasSpun(true)
         
@@ -78,7 +64,6 @@ export default function HomePage() {
           setShowResult(true)
         }, 2000)
       } else {
-        console.error('Spin failed:', response.status)
         setIsSpinning(false)
         alert('Failed to spin')
       }
@@ -91,19 +76,6 @@ export default function HomePage() {
 
   const closeModal = () => {
     setShowResult(false)
-  }
-
-  console.log('HomePage render:', { isClient, deviceHasSpun, isSpinning })
-
-  if (!isClient) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-600">Loading RukaPay Spin & Win...</p>
-        </div>
-      </div>
-    )
   }
 
   return (
@@ -152,12 +124,13 @@ export default function HomePage() {
           </p>
         )}
 
-        {/* Debug Info */}
-        <div className="mt-8 text-xs text-gray-500 text-center">
-          <p>Device ID: {deviceId}</p>
-          <p>Has Spun: {deviceHasSpun ? 'Yes' : 'No'}</p>
-          <p>Is Spinning: {isSpinning ? 'Yes' : 'No'}</p>
-        </div>
+        {/* Loading State */}
+        {!mounted && (
+          <div className="text-center mt-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
+            <p className="text-sm text-gray-600">Loading...</p>
+          </div>
+        )}
       </div>
 
       {/* Result Modal */}
