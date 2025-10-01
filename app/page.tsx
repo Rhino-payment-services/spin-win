@@ -3,40 +3,15 @@
 import { useState, useEffect } from 'react'
 import SpinningWheel from './components/SpinningWheel'
 import ResultModal from './components/ResultModal'
-import PrizeHistory from './components/PrizeHistory'
-
-interface PrizeCounts {
-  [key: string]: number
-}
 
 export default function Home() {
   const [spinsUsed, setSpinsUsed] = useState(0)
   const [isSpinning, setIsSpinning] = useState(false)
   const [showResult, setShowResult] = useState(false)
   const [winningPrize, setWinningPrize] = useState('')
-  const [prizeCounts, setPrizeCounts] = useState<PrizeCounts>({})
   const [spinsRemaining, setSpinsRemaining] = useState(1)
 
 
-  // Load prize data on mount
-  useEffect(() => {
-    const loadPrizeData = async () => {
-      try {
-        const response = await fetch('/api/spin', {
-          method: 'GET'
-        })
-        
-        if (response.ok) {
-          const data = await response.json()
-          setPrizeCounts(data.prizeCounts || {})
-        }
-      } catch (error) {
-        console.error('Error loading prize data:', error)
-      }
-    }
-    
-    loadPrizeData()
-  }, [])
 
   const prizes = [
     { name: 'Shirt', color: '#8b5cf6', icon: '👕' },      // Purple
@@ -68,7 +43,6 @@ export default function Home() {
 
       if (response.ok) {
         setWinningPrize(data.prize)
-        setPrizeCounts(data.prizeCounts)
         setSpinsRemaining(data.spinsRemaining)
         setSpinsUsed(spinsUsed + 1)
         
@@ -154,10 +128,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Prize History */}
-          <div className="flex-1 w-full max-w-md lg:max-w-md">
-            <PrizeHistory prizeCounts={prizeCounts} />
-          </div>
         </div>
 
         {/* Result Modal */}
