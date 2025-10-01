@@ -84,10 +84,12 @@ export default function Home() {
   ]
 
   const handleSpin = async () => {
-    // Check if device has already spun
-    if (deviceHasSpun || spinsUsed >= 1 || isSpinning) return
+    // Check if device has already spun (only if NOT on localhost)
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    
+    if (!isLocalhost && (deviceHasSpun || spinsUsed >= 1) || isSpinning) return
 
-    console.log('Starting spin...', { spinsUsed, isSpinning, deviceId })
+    console.log('Starting spin...', { spinsUsed, isSpinning, deviceId, isLocalhost })
     setIsSpinning(true)
 
     try {
@@ -157,7 +159,9 @@ export default function Home() {
           </p>
           <div className="inline-flex items-center px-6 py-3 bg-blue-50 rounded-full shadow-md border border-blue-200">
             <span className="text-blue-900 font-semibold">Spins remaining:</span>
-            <span className="ml-2 text-2xl font-bold text-blue-900">{spinsRemaining}</span>
+            <span className="ml-2 text-2xl font-bold text-blue-900">
+              {(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '∞' : spinsRemaining}
+            </span>
           </div>
         </div>
 
@@ -176,18 +180,24 @@ export default function Home() {
               <div className="text-center mt-8">
                 <button
                   onClick={(e) => {
-                    console.log('Button clicked!', { spinsUsed, isSpinning, deviceHasSpun })
+                    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                    console.log('Button clicked!', { spinsUsed, isSpinning, deviceHasSpun, isLocalhost })
                     handleSpin()
                   }}
-                  disabled={deviceHasSpun || spinsUsed >= 1 || isSpinning}
+                  disabled={isSpinning}
                   className={`px-12 py-4 text-2xl font-bold rounded-2xl transition-all duration-300 ${
-                    deviceHasSpun || spinsUsed >= 1 || isSpinning
+                    isSpinning
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-blue-900 text-white hover:bg-blue-800 hover:scale-105 active:scale-95 shadow-lg hover:shadow-2xl'
                   }`}
                 >
-                  {isSpinning ? 'Spinning...' : (deviceHasSpun || spinsUsed >= 1) ? 'Already Used - One Spin Per Device' : 'SPIN!'}
+                  {isSpinning ? 'Spinning...' : 'SPIN!'}
                 </button>
+                {(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && (
+                  <p className="text-sm text-green-600 mt-2 font-medium">
+                    🧪 Testing Mode - Unlimited Spins
+                  </p>
+                )}
               </div>
             </div>
           </div>

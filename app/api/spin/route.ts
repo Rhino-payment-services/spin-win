@@ -130,23 +130,30 @@ export async function POST(request: NextRequest) {
     const { spinsUsed, deviceId } = body
     const deviceFingerprint = request.headers.get('X-Device-ID') || deviceId
 
-    // Check if this device has already spun
-    if (deviceFingerprint) {
-      const existingDevice = await Device.findOne({ deviceId: deviceFingerprint })
-      if (existingDevice && existingDevice.hasSpun) {
+    // Check if running on localhost (unlimited spins for testing)
+    const isLocalhost = request.headers.get('host')?.includes('localhost') || 
+                       request.headers.get('host')?.includes('127.0.0.1')
+
+    // Only check device restrictions if NOT on localhost
+    if (!isLocalhost) {
+      // Check if this device has already spun
+      if (deviceFingerprint) {
+        const existingDevice = await Device.findOne({ deviceId: deviceFingerprint })
+        if (existingDevice && existingDevice.hasSpun) {
+          return NextResponse.json(
+            { error: 'This device has already been used to spin' },
+            { status: 400 }
+          )
+        }
+      }
+
+      // Check if user has exceeded spin limit
+      if (spinsUsed >= 1) {
         return NextResponse.json(
-          { error: 'This device has already been used to spin' },
+          { error: 'Maximum spins reached (1 spin allowed)' },
           { status: 400 }
         )
       }
-    }
-
-    // Check if user has exceeded spin limit
-    if (spinsUsed >= 1) {
-      return NextResponse.json(
-        { error: 'Maximum spins reached (1 spin allowed)' },
-        { status: 400 }
-      )
     }
 
     // Get available prizes
@@ -171,8 +178,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Record the device as having spun
-    if (deviceFingerprint) {
+    // Record the device as having spun (only if NOT on localhost)
+    if (deviceFingerprint && !isLocalhost) {
       await Device.findOneAndUpdate(
         { deviceId: deviceFingerprint },
         { 
@@ -227,11 +234,15 @@ export async function GET(request: NextRequest) {
     await initializePrizes()
     await checkAndResetDaily()
     
-    // Check if device has already spun
+    // Check if running on localhost (unlimited spins for testing)
+    const isLocalhost = request.headers.get('host')?.includes('localhost') || 
+                       request.headers.get('host')?.includes('127.0.0.1')
+    
+    // Check if device has already spun (only if NOT on localhost)
     const deviceFingerprint = request.headers.get('X-Device-ID')
     let deviceHasSpun = false
     
-    if (deviceFingerprint) {
+    if (deviceFingerprint && !isLocalhost) {
       const device = await Device.findOne({ deviceId: deviceFingerprint })
       deviceHasSpun = device ? device.hasSpun : false
     }
