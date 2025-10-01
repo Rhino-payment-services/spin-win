@@ -40,21 +40,21 @@ export default function ResultModal({ prize, onClose, spinsRemaining }: ResultMo
 
   return (
     <div className="modal-overlay" onClick={onClose}>
+      {/* Congratulations Lottie Animation - Fullscreen, only for won prizes */}
+      {!isTryAgain && (
+        <div className="fixed inset-0 pointer-events-none z-40 flex items-start justify-center">
+          <Lottie
+            animationData={congratsAnimation}
+            loop={true}
+            autoplay={true}
+            style={{ width: '100vw', height: '100vh', marginTop: '0' }}
+          />
+        </div>
+      )}
+      
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        {/* Congratulations Lottie Animation - only for won prizes */}
-        {!isTryAgain && (
-          <div className="absolute inset-0 pointer-events-none z-0 flex items-center justify-center">
-            <Lottie
-              animationData={congratsAnimation}
-              loop={true}
-              autoplay={true}
-              style={{ width: '120%', height: '120%', maxWidth: '600px' }}
-            />
-          </div>
-        )}
-        
         {/* Content with higher z-index */}
-        <div className="relative z-10">
+        <div className="relative z-50">
           <div className="text-6xl mb-4 animate-bounce">
             {getPrizeIcon(prize)}
           </div>
