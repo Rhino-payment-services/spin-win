@@ -43,6 +43,9 @@ let dailyDistributed: Record<string, number> = {
 
 let lastResetDate = new Date().toDateString()
 
+// Track devices that have already spun
+let spunDevices: Set<string> = new Set()
+
 // Function to reset daily counts if it's a new day
 function checkAndResetDaily() {
   const today = new Date().toDateString()
@@ -69,10 +72,19 @@ const prizes = [
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { spinsUsed } = body
+    const { spinsUsed, deviceId } = body
+    const deviceFingerprint = request.headers.get('X-Device-ID') || deviceId
 
     // Check and reset daily counts if it's a new day
     checkAndResetDaily()
+
+    // Check if this device has already spun
+    if (deviceFingerprint && spunDevices.has(deviceFingerprint)) {
+      return NextResponse.json(
+        { error: 'This device has already been used to spin' },
+        { status: 400 }
+      )
+    }
 
     // Check if user has exceeded spin limit
     if (spinsUsed >= 1) {
@@ -120,6 +132,11 @@ export async function POST(request: NextRequest) {
       dailyDistributed[winningPrize]++
     }
 
+    // Mark this device as having spun
+    if (deviceFingerprint) {
+      spunDevices.add(deviceFingerprint)
+    }
+
     return NextResponse.json({
       prize: winningPrize,
       prizeCounts: { ...prizeCounts },
@@ -133,15 +150,20 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   // Check and reset daily counts if it's a new day
   checkAndResetDaily()
+  
+  // Check if device has already spun
+  const deviceFingerprint = request.headers.get('X-Device-ID')
+  const deviceHasSpun = deviceFingerprint ? spunDevices.has(deviceFingerprint) : false
   
   // Return current prize counts, inventory, daily limits, and config
   return NextResponse.json({
     prizeCounts: { ...prizeCounts },
     inventory: { ...prizeInventory },
     dailyDistributed: { ...dailyDistributed },
-    prizeConfig: { ...prizeConfig }
+    prizeConfig: { ...prizeConfig },
+    deviceHasSpun
   })
 }
