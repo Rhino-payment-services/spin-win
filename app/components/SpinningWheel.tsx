@@ -33,9 +33,11 @@ export default function SpinningWheel({ prizes, isSpinning, winningPrize }: Spin
         const segmentAngle = 360 / prizes.length // 60 degrees per segment for 6 segments
         const prizeAngle = segmentAngle * prizeIndex
         
-        // Position the prize at the top (12 o'clock position)
-        // The arrow points to the top, so we need to rotate so the winning segment is at 0 degrees
-        const finalRotation = baseRotation + (360 - prizeAngle)
+        // Position the prize at the top (12 o'clock position where arrow points)
+        // Arrow is at top (270 degrees in standard coordinates, -90 from right)
+        // We need to rotate so the center of winning segment aligns with the arrow
+        // Subtract prizeAngle and add 90 degrees to align with top arrow
+        const finalRotation = baseRotation - prizeAngle + 90
         
         console.log('Prize details:', {
           prizeName: winningPrize,
@@ -66,7 +68,8 @@ export default function SpinningWheel({ prizes, isSpinning, winningPrize }: Spin
   useEffect(() => {
     if (!isSpinning && wheelRef.current) {
       // Reset to initial position where first segment (Cap) is at the top
-      wheelRef.current.style.transform = 'rotate(0deg)'
+      // Add 90 degrees offset to align with top arrow
+      wheelRef.current.style.transform = 'rotate(90deg)'
     }
   }, [isSpinning])
 
@@ -80,7 +83,7 @@ export default function SpinningWheel({ prizes, isSpinning, winningPrize }: Spin
         ref={wheelRef}
         className="modern-wheel"
         style={{
-          transform: 'rotate(0deg)',
+          transform: 'rotate(90deg)',
           transition: isSpinning ? 'transform 4s cubic-bezier(0.23, 1, 0.32, 1)' : 'none'
         }}
       >
