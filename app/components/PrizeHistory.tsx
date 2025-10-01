@@ -37,7 +37,7 @@ export default function PrizeHistory({ prizeCounts }: PrizeHistoryProps) {
     { name: 'Umbrella', icon: '☂️' }
   ]
 
-  const totalPrizes = Object.values(prizeCounts).reduce((sum, count) => sum + count, 0)
+  const totalPrizes = prizeCounts ? Object.values(prizeCounts).reduce((sum, count) => sum + count, 0) : 0
 
   return (
     <div className="prize-history">
@@ -48,7 +48,7 @@ export default function PrizeHistory({ prizeCounts }: PrizeHistoryProps) {
       {totalPrizes > 0 ? (
         <div className="space-y-3">
           {prizes.map((prize) => {
-            const count = prizeCounts[prize.name] || 0
+            const count = prizeCounts ? (prizeCounts[prize.name] || 0) : 0
             return (
             <div key={prize.name} className="prize-item">
               <span className="flex items-center gap-2">
