@@ -19,6 +19,7 @@ export default function Home() {
   const [deviceHasSpun, setDeviceHasSpun] = useState(false)
   const [deviceId, setDeviceId] = useState('')
   const [isLocalhost, setIsLocalhost] = useState(false)
+  const [isClient, setIsClient] = useState(false)
 
   // Generate a unique device fingerprint
   const generateDeviceFingerprint = () => {
@@ -45,6 +46,9 @@ export default function Home() {
 
   // Check if device has already spun on mount
   useEffect(() => {
+    // Mark as client-side
+    setIsClient(true)
+    
     // Check if running on localhost
     const hostname = window.location.hostname
     const isLocal = hostname === 'localhost' || hostname === '127.0.0.1'
@@ -164,7 +168,7 @@ export default function Home() {
           <div className="inline-flex items-center px-6 py-3 bg-blue-50 rounded-full shadow-md border border-blue-200">
             <span className="text-blue-900 font-semibold">Spins remaining:</span>
             <span className="ml-2 text-2xl font-bold text-blue-900">
-              {isLocalhost ? '∞' : spinsRemaining}
+              {isClient && isLocalhost ? '∞' : spinsRemaining}
             </span>
           </div>
         </div>
@@ -196,7 +200,7 @@ export default function Home() {
                 >
                   {isSpinning ? 'Spinning...' : 'SPIN!'}
                 </button>
-                {isLocalhost && (
+                {isClient && isLocalhost && (
                   <p className="text-sm text-green-600 mt-2 font-medium">
                     🧪 Testing Mode - Unlimited Spins
                   </p>
