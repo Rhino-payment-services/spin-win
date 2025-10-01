@@ -1,7 +1,7 @@
 'use client'
 
 import Lottie from 'lottie-react'
-import celebrationAnimation from './celebration.json'
+import congratsAnimation from './congrats_summer.json'
 
 interface ResultModalProps {
   prize: string
@@ -43,12 +43,12 @@ export default function ResultModal({ prize, onClose, spinsRemaining }: ResultMo
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         {/* Congratulations Lottie Animation - only for won prizes */}
         {!isTryAgain && (
-          <div className="absolute inset-0 pointer-events-none z-0">
+          <div className="absolute inset-0 pointer-events-none z-0 flex items-center justify-center">
             <Lottie
-              animationData={celebrationAnimation}
+              animationData={congratsAnimation}
               loop={false}
               autoplay={true}
-              style={{ width: '100%', height: '100%' }}
+              style={{ width: '120%', height: '120%', maxWidth: '600px' }}
             />
           </div>
         )}
