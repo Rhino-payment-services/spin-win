@@ -46,7 +46,7 @@ export default function ResultModal({ prize, onClose, spinsRemaining }: ResultMo
           <div className="absolute inset-0 pointer-events-none z-0 flex items-center justify-center">
             <Lottie
               animationData={congratsAnimation}
-              loop={false}
+              loop={true}
               autoplay={true}
               style={{ width: '120%', height: '120%', maxWidth: '600px' }}
             />
