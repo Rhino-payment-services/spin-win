@@ -1,157 +1,91 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import SpinningWheel from './components/SpinningWheel'
-import ResultModal from './components/ResultModal'
-import PrizeHistory from './components/PrizeHistory'
 
-interface PrizeCounts {
-  [key: string]: number
-}
-
-export default function Home() {
-  const [spinsUsed, setSpinsUsed] = useState(0)
-  const [isSpinning, setIsSpinning] = useState(false)
-  const [showResult, setShowResult] = useState(false)
-  const [winningPrize, setWinningPrize] = useState('')
-  const [prizeCounts, setPrizeCounts] = useState<PrizeCounts>({})
-  const [spinsRemaining, setSpinsRemaining] = useState(1)
-  const [deviceHasSpun, setDeviceHasSpun] = useState(false)
-  const [deviceId, setDeviceId] = useState('')
+export default function HomePage() {
   const [isClient, setIsClient] = useState(false)
+  const [deviceId, setDeviceId] = useState('')
+  const [deviceHasSpun, setDeviceHasSpun] = useState(false)
+  const [isSpinning, setIsSpinning] = useState(false)
+  const [winningPrize, setWinningPrize] = useState('')
+  const [showResult, setShowResult] = useState(false)
 
-  // Generate a unique device fingerprint
-  const generateDeviceFingerprint = () => {
-    // Check if we're in the browser
-    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
-      return `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    }
-
-    try {
-      const fingerprint = {
-        screen: `${window.screen.width}x${window.screen.height}x${window.screen.colorDepth}`,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        language: navigator.language,
-        platform: navigator.platform,
-        hardwareConcurrency: navigator.hardwareConcurrency,
-        deviceMemory: (navigator as any).deviceMemory || 'unknown',
-        userAgent: navigator.userAgent
-      }
-      
-      // Create a hash-like string from the fingerprint
-      const fingerprintString = JSON.stringify(fingerprint)
-      let hash = 0
-      for (let i = 0; i < fingerprintString.length; i++) {
-        const char = fingerprintString.charCodeAt(i)
-        hash = ((hash << 5) - hash) + char
-        hash = hash & hash
-      }
-      return `device_${Math.abs(hash)}`
-    } catch (error) {
-      console.warn('Error generating device fingerprint:', error)
-      return `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    }
-  }
-
-  // Check if device has already spun on mount
   useEffect(() => {
-    try {
-      // Set client-side flag
-      setIsClient(true)
-      
-      const fingerprint = generateDeviceFingerprint()
-      setDeviceId(fingerprint)
-      
-      // Check with backend if this device has already spun
-      const checkDeviceStatus = async () => {
-        try {
-          const response = await fetch('/api/spin', {
-            method: 'GET',
-            headers: {
-              'X-Device-ID': fingerprint
-            }
-          })
-          
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`)
+    console.log('HomePage useEffect running')
+    setIsClient(true)
+    
+    // Simple device ID generation
+    const fingerprint = `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    setDeviceId(fingerprint)
+    
+    // Check device status
+    const checkDeviceStatus = async () => {
+      try {
+        console.log('Checking device status...')
+        const response = await fetch('/api/spin', {
+          method: 'GET',
+          headers: {
+            'X-Device-ID': fingerprint
           }
-          
+        })
+        
+        console.log('Device status response:', response.status)
+        
+        if (response.ok) {
           const data = await response.json()
-          console.log('Device status response:', data)
-          
-          const hasSpun = data?.deviceHasSpun || false
-          
-          if (hasSpun) {
-            setDeviceHasSpun(true)
-            setSpinsUsed(1)
-            setSpinsRemaining(0)
-          }
-        } catch (error) {
-          console.error('Error checking device status:', error)
+          console.log('Device status data:', data)
+          setDeviceHasSpun(data.deviceHasSpun || false)
         }
+      } catch (error) {
+        console.error('Error checking device status:', error)
       }
-      
-      checkDeviceStatus()
-    } catch (error) {
-      console.error('Error in useEffect:', error)
     }
+    
+    checkDeviceStatus()
   }, [])
 
-  const prizes = [
-    { name: 'Shirt', color: '#8b5cf6', icon: '👕' },      // Purple
-    { name: 'Book', color: '#f97316', icon: '📚' },       // Orange-red
-    { name: 'Wristband', color: '#10b981', icon: '⌚' },   // Lime green
-    { name: 'Try Again', color: '#3b82f6', icon: '🔄' },  // Blue
-    { name: 'Pen', color: '#f59e0b', icon: '✏️' },        // Bright orange
-    { name: 'Cap', color: '#ec4899', icon: '🧢' },        // Hot pink
-    { name: 'Umbrella', color: '#14b8a6', icon: '☂️' }    // Teal
-  ]
-
   const handleSpin = async () => {
+    console.log('handleSpin called')
+    
+    if (deviceHasSpun || isSpinning) {
+      console.log('Cannot spin:', { deviceHasSpun, isSpinning })
+      return
+    }
+
+    console.log('Starting spin...')
+    setIsSpinning(true)
+
     try {
-      // Check if device has already spun
-      if (deviceHasSpun || spinsUsed >= 1 || isSpinning) return
-
-      console.log('Starting spin...', { spinsUsed, isSpinning, deviceId })
-      setIsSpinning(true)
-
       const response = await fetch('/api/spin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Device-ID': deviceId || ''
+          'X-Device-ID': deviceId
         },
-        body: JSON.stringify({ spinsUsed, deviceId }),
+        body: JSON.stringify({ spinsUsed: 0, deviceId }),
       })
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
+      console.log('Spin response status:', response.status)
 
-      const data = await response.json()
-      console.log('API response:', data)
-
-      if (data && typeof data === 'object') {
+      if (response.ok) {
+        const data = await response.json()
+        console.log('Spin data:', data)
         setWinningPrize(data.prize || '')
-        setPrizeCounts(data.prizeCounts || {})
-        setSpinsRemaining(data.spinsRemaining || 0)
-        setSpinsUsed(spinsUsed + 1)
-        
-        // Mark device as having spun
         setDeviceHasSpun(true)
         
-        // Show result after spinning animation
         setTimeout(() => {
           setIsSpinning(false)
           setShowResult(true)
-        }, 4000)
+        }, 2000)
       } else {
-        throw new Error('Invalid response data')
+        console.error('Spin failed:', response.status)
+        setIsSpinning(false)
+        alert('Failed to spin')
       }
     } catch (error) {
       console.error('Spin error:', error)
       setIsSpinning(false)
-      alert('Network error. Please try again.')
+      alert('Network error')
     }
   }
 
@@ -159,7 +93,8 @@ export default function Home() {
     setShowResult(false)
   }
 
-  // Show loading state during hydration
+  console.log('HomePage render:', { isClient, deviceHasSpun, isSpinning })
+
   if (!isClient) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
@@ -172,80 +107,77 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-white py-12 px-4">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="mb-6">
-            <div className="inline-flex items-center justify-center w-20 h-20 mb-4">
-              <div className="rukapay-logo">
-                <div className="logo-circle">
-                  <div className="logo-r">R</div>
-                  <div className="logo-accent accent-1"></div>
-                  <div className="logo-accent accent-2"></div>
-                  <div className="logo-horn"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <h1 className="text-5xl font-bold text-blue-900 mb-4">
-            RukaPay Spin & Win
-          </h1>
-          <p className="text-xl text-gray-600 mb-4">
-            Tap to pay, the Ugandan way. Spin the wheel and win amazing prizes!
-          </p>
-          <div className="inline-flex items-center px-6 py-3 bg-blue-50 rounded-full shadow-md border border-blue-200">
-            <span className="text-blue-900 font-semibold">Spins remaining:</span>
-            <span className="ml-2 text-2xl font-bold text-blue-900">{spinsRemaining}</span>
-          </div>
-        </div>
-
-        {/* Main Game Area */}
-        <div className="flex flex-col lg:flex-row gap-12 items-start justify-center">
-          {/* Wheel Container */}
-          <div className="flex-shrink-0">
-            <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-200">
-              <SpinningWheel
-                prizes={prizes}
-                isSpinning={isSpinning}
-                winningPrize={winningPrize}
-              />
-              
-              {/* Spin Button */}
-              <div className="text-center mt-8">
-                <button
-                  onClick={(e) => {
-                    console.log('Button clicked!', { spinsUsed, isSpinning, deviceHasSpun })
-                    handleSpin()
-                  }}
-                  disabled={deviceHasSpun || spinsUsed >= 1 || isSpinning}
-                  className={`px-12 py-4 text-2xl font-bold rounded-2xl transition-all duration-300 ${
-                    deviceHasSpun || spinsUsed >= 1 || isSpinning
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-blue-900 text-white hover:bg-blue-800 hover:scale-105 active:scale-95 shadow-lg hover:shadow-2xl'
-                  }`}
-                >
-                  {isSpinning ? 'Spinning...' : (deviceHasSpun || spinsUsed >= 1) ? 'Already Used - One Spin Per Device' : 'SPIN!'}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Prize History */}
-          <div className="flex-1 max-w-md">
-            <PrizeHistory prizeCounts={prizeCounts} />
-          </div>
-        </div>
-
-        {/* Result Modal */}
-        {showResult && (
-          <ResultModal
-            prize={winningPrize}
-            onClose={closeModal}
-            spinsRemaining={spinsRemaining}
-          />
-        )}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Header */}
+      <div className="text-center pt-8 pb-4">
+        <h1 className="text-4xl font-bold text-blue-900 mb-2">
+          RukaPay Spin & Win
+        </h1>
+        <p className="text-lg text-gray-600">
+          Tap to Pay, the Ugandan Way
+        </p>
       </div>
+
+      {/* Main Content */}
+      <div className="flex flex-col items-center justify-center min-h-[70vh] px-4">
+        {/* Simple Wheel */}
+        <div className="relative mb-8">
+          <div className="w-80 h-80 rounded-full border-8 border-gray-300 bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+            <div className="text-6xl">🎯</div>
+          </div>
+        </div>
+
+        {/* Spin Button */}
+        <button
+          onClick={handleSpin}
+          disabled={deviceHasSpun || isSpinning}
+          className={`px-8 py-4 rounded-full text-xl font-bold transition-all duration-200 ${
+            deviceHasSpun || isSpinning
+              ? 'bg-gray-400 cursor-not-allowed text-gray-600'
+              : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+          }`}
+        >
+          {deviceHasSpun 
+            ? 'Already Spun' 
+            : isSpinning 
+            ? 'Spinning...' 
+            : 'SPIN THE WHEEL'
+          }
+        </button>
+
+        {/* Device Status */}
+        {deviceHasSpun && (
+          <p className="text-sm text-gray-600 mt-4 text-center">
+            You have already spun the wheel on this device.
+          </p>
+        )}
+
+        {/* Debug Info */}
+        <div className="mt-8 text-xs text-gray-500 text-center">
+          <p>Device ID: {deviceId}</p>
+          <p>Has Spun: {deviceHasSpun ? 'Yes' : 'No'}</p>
+          <p>Is Spinning: {isSpinning ? 'Yes' : 'No'}</p>
+        </div>
+      </div>
+
+      {/* Result Modal */}
+      {showResult && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={closeModal}>
+          <div className="bg-white p-8 rounded-lg shadow-xl text-center max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+            <div className="text-6xl mb-4">🎉</div>
+            <h2 className="text-3xl font-bold mb-4">Congratulations!</h2>
+            <p className="text-xl mb-6">
+              You won: <strong>{winningPrize}</strong>
+            </p>
+            <button
+              onClick={closeModal}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200"
+            >
+              Awesome!
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
