@@ -16,6 +16,17 @@ export default function Home() {
   const [winningPrize, setWinningPrize] = useState('')
   const [prizeCounts, setPrizeCounts] = useState<PrizeCounts>({})
   const [spinsRemaining, setSpinsRemaining] = useState(1)
+  const [deviceHasSpun, setDeviceHasSpun] = useState(false)
+
+  // Check if device has already spun on mount
+  useEffect(() => {
+    const hasSpun = localStorage.getItem('rukaPay_hasSpun')
+    if (hasSpun === 'true') {
+      setDeviceHasSpun(true)
+      setSpinsUsed(1)
+      setSpinsRemaining(0)
+    }
+  }, [])
 
   const prizes = [
     { name: 'Shirt', color: '#8b5cf6', icon: '👕' },      // Purple
@@ -28,7 +39,8 @@ export default function Home() {
   ]
 
   const handleSpin = async () => {
-    if (spinsUsed >= 1 || isSpinning) return
+    // Check if device has already spun
+    if (deviceHasSpun || spinsUsed >= 1 || isSpinning) return
 
     console.log('Starting spin...', { spinsUsed, isSpinning })
     setIsSpinning(true)
@@ -50,6 +62,10 @@ export default function Home() {
         setPrizeCounts(data.prizeCounts)
         setSpinsRemaining(data.spinsRemaining)
         setSpinsUsed(spinsUsed + 1)
+        
+        // Mark device as having spun
+        localStorage.setItem('rukaPay_hasSpun', 'true')
+        setDeviceHasSpun(true)
         
         // Show result after spinning animation
         setTimeout(() => {
@@ -115,17 +131,17 @@ export default function Home() {
               <div className="text-center mt-8">
                 <button
                   onClick={(e) => {
-                    console.log('Button clicked!', { spinsUsed, isSpinning })
+                    console.log('Button clicked!', { spinsUsed, isSpinning, deviceHasSpun })
                     handleSpin()
                   }}
-                  disabled={spinsUsed >= 1 || isSpinning}
+                  disabled={deviceHasSpun || spinsUsed >= 1 || isSpinning}
                   className={`px-12 py-4 text-2xl font-bold rounded-2xl transition-all duration-300 ${
-                    spinsUsed >= 1 || isSpinning
+                    deviceHasSpun || spinsUsed >= 1 || isSpinning
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-blue-900 text-white hover:bg-blue-800 hover:scale-105 active:scale-95 shadow-lg hover:shadow-2xl'
                   }`}
                 >
-                  {isSpinning ? 'Spinning...' : spinsUsed >= 1 ? 'No Spins Left' : 'SPIN!'}
+                  {isSpinning ? 'Spinning...' : (deviceHasSpun || spinsUsed >= 1) ? 'Already Used - One Spin Per Device' : 'SPIN!'}
                 </button>
               </div>
             </div>
