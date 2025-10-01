@@ -1,5 +1,8 @@
 'use client'
 
+import Lottie from 'lottie-react'
+import celebrationAnimation from './celebration.json'
+
 interface ResultModalProps {
   prize: string
   onClose: () => void
@@ -9,11 +12,12 @@ interface ResultModalProps {
 export default function ResultModal({ prize, onClose, spinsRemaining }: ResultModalProps) {
   const getPrizeIcon = (prizeName: string) => {
     switch (prizeName) {
+      case 'Shirt': return '👕'
+      case 'Book': return '📚'
+      case 'Wristband': return '⌚'
       case 'Cap': return '🧢'
       case 'Umbrella': return '☂️'
-      case '100k': return '💰'
       case 'Pen': return '✏️'
-      case 'Notebook': return '📓'
       case 'Try Again': return '🔄'
       default: return '🎁'
     }
@@ -21,56 +25,74 @@ export default function ResultModal({ prize, onClose, spinsRemaining }: ResultMo
 
   const getPrizeMessage = (prizeName: string) => {
     switch (prizeName) {
+      case 'Shirt': return 'Congratulations! You won a cool T-Shirt!'
+      case 'Book': return 'Awesome! You won a book!'
+      case 'Wristband': return 'Great! You won a stylish wristband!'
       case 'Cap': return 'Congratulations! You won a stylish cap!'
       case 'Umbrella': return 'Great! You won an umbrella to keep you dry!'
-      case '100k': return '🎉 AMAZING! You won 100k! 🎉'
       case 'Pen': return 'Nice! You won a premium pen!'
-      case 'Notebook': return 'Awesome! You won a notebook!'
-      case 'Try Again': return 'Better luck next time! Try again!'
+      case 'Try Again': return 'Better luck next time! Try spinning again!'
       default: return 'Congratulations on your prize!'
     }
   }
 
-  const isBigWin = prize === '100k'
   const isTryAgain = prize === 'Try Again'
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="text-6xl mb-4">
-          {getPrizeIcon(prize)}
+        {/* Congratulations Lottie Animation - only for won prizes */}
+        {!isTryAgain && (
+          <div className="absolute inset-0 pointer-events-none z-0">
+            <Lottie
+              animationData={celebrationAnimation}
+              loop={false}
+              autoplay={true}
+              style={{ width: '100%', height: '100%' }}
+            />
+          </div>
+        )}
+        
+        {/* Content with higher z-index */}
+        <div className="relative z-10">
+          <div className="text-6xl mb-4 animate-bounce">
+            {getPrizeIcon(prize)}
+          </div>
+          
+          <h2 className={`text-3xl font-bold mb-4 ${isTryAgain ? 'text-gray-600' : 'text-blue-900'}`}>
+            {!isTryAgain && (
+              <span className="block text-xl text-yellow-500 mb-2">🎉 Congratulations! 🎉</span>
+            )}
+            {prize}
+          </h2>
+          
+          <p className={`text-lg mb-6 ${isTryAgain ? 'text-gray-600' : 'text-gray-700 font-semibold'}`}>
+            {getPrizeMessage(prize)}
+          </p>
+          
+          {spinsRemaining > 0 && (
+            <p className="text-sm text-blue-600 mb-6">
+              You have {spinsRemaining} spin remaining!
+            </p>
+          )}
+          
+          {spinsRemaining === 0 && (
+            <p className="text-sm text-gray-600 mb-6">
+              You've used your spin. Thank you for playing!
+            </p>
+          )}
+          
+          <button
+            onClick={onClose}
+            className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 ${
+              isTryAgain
+                ? 'bg-gray-500 text-white hover:bg-gray-600' 
+                : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg'
+            }`}
+          >
+            {isTryAgain ? 'Close' : 'Claim Prize!'}
+          </button>
         </div>
-        
-        <h2 className={`text-2xl font-bold mb-4 ${isBigWin ? 'text-yellow-600' : isTryAgain ? 'text-gray-600' : 'text-blue-900'}`}>
-          {prize}
-        </h2>
-        
-        <p className="text-gray-700 mb-6">
-          {getPrizeMessage(prize)}
-        </p>
-        
-        {spinsRemaining > 0 && (
-          <p className="text-sm text-blue-600 mb-6">
-            You have {spinsRemaining} spin remaining!
-          </p>
-        )}
-        
-        {spinsRemaining === 0 && (
-          <p className="text-sm text-gray-600 mb-6">
-            You've used your spin. Thank you for playing!
-          </p>
-        )}
-        
-        <button
-          onClick={onClose}
-          className={`w-full py-3 px-6 rounded-lg font-semibold transition-colors ${
-            isBigWin 
-              ? 'bg-yellow-500 text-white hover:bg-yellow-600' 
-              : 'bg-blue-900 text-white hover:bg-blue-800'
-          }`}
-        >
-          Close
-        </button>
       </div>
     </div>
   )
