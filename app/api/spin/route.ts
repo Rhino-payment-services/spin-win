@@ -60,13 +60,13 @@ function checkAndResetDaily() {
 
 // Prize configuration with probabilities
 const prizes = [
-  { name: 'Shirt', probability: 20 },
-  { name: 'Book', probability: 20 },
-  { name: 'Wristband', probability: 20 },
-  { name: 'Try Again', probability: 15 },
-  { name: 'Pen', probability: 10 },
-  { name: 'Cap', probability: 10 },
-  { name: 'Umbrella', probability: 5 }
+  { name: 'Wristband', probability: 40 },  // Highest chance
+  { name: 'Shirt', probability: 15 },
+  { name: 'Book', probability: 15 },
+  { name: 'Try Again', probability: 12 },
+  { name: 'Pen', probability: 8 },
+  { name: 'Cap', probability: 7 },
+  { name: 'Umbrella', probability: 3 }
 ]
 
 export async function POST(request: NextRequest) {
