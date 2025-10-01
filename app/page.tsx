@@ -16,71 +16,26 @@ export default function Home() {
   const [winningPrize, setWinningPrize] = useState('')
   const [prizeCounts, setPrizeCounts] = useState<PrizeCounts>({})
   const [spinsRemaining, setSpinsRemaining] = useState(1)
-  const [deviceHasSpun, setDeviceHasSpun] = useState(false)
-  const [deviceId, setDeviceId] = useState('')
-  const [isLocalhost, setIsLocalhost] = useState(false)
-  const [isClient, setIsClient] = useState(false)
 
-  // Generate a unique device fingerprint
-  const generateDeviceFingerprint = () => {
-    const fingerprint = {
-      screen: `${window.screen.width}x${window.screen.height}x${window.screen.colorDepth}`,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      language: navigator.language,
-      platform: navigator.platform,
-      hardwareConcurrency: navigator.hardwareConcurrency,
-      deviceMemory: (navigator as any).deviceMemory || 'unknown',
-      userAgent: navigator.userAgent
-    }
-    
-    // Create a hash-like string from the fingerprint
-    const fingerprintString = JSON.stringify(fingerprint)
-    let hash = 0
-    for (let i = 0; i < fingerprintString.length; i++) {
-      const char = fingerprintString.charCodeAt(i)
-      hash = ((hash << 5) - hash) + char
-      hash = hash & hash
-    }
-    return `device_${Math.abs(hash)}`
-  }
 
-  // Check if device has already spun on mount
+  // Load prize data on mount
   useEffect(() => {
-    // Mark as client-side
-    setIsClient(true)
-    
-    // Check if running on localhost
-    const hostname = window.location.hostname
-    const isLocal = hostname === 'localhost' || hostname === '127.0.0.1'
-    setIsLocalhost(isLocal)
-    
-    const fingerprint = generateDeviceFingerprint()
-    setDeviceId(fingerprint)
-    
-    // Check with backend if this device has already spun (only if not localhost)
-    const checkDeviceStatus = async () => {
+    const loadPrizeData = async () => {
       try {
         const response = await fetch('/api/spin', {
-          method: 'GET',
-          headers: {
-            'X-Device-ID': fingerprint
-          }
+          method: 'GET'
         })
         
-        const data = await response.json()
-        const hasSpun = data.deviceHasSpun || false
-        
-        if (hasSpun && !isLocal) {
-          setDeviceHasSpun(true)
-          setSpinsUsed(1)
-          setSpinsRemaining(0)
+        if (response.ok) {
+          const data = await response.json()
+          setPrizeCounts(data.prizeCounts || {})
         }
       } catch (error) {
-        console.error('Error checking device status:', error)
+        console.error('Error loading prize data:', error)
       }
     }
     
-    checkDeviceStatus()
+    loadPrizeData()
   }, [])
 
   const prizes = [
@@ -94,20 +49,18 @@ export default function Home() {
   ]
 
   const handleSpin = async () => {
-    // Check if device has already spun (only if NOT on localhost)
-    if (!isLocalhost && (deviceHasSpun || spinsUsed >= 1) || isSpinning) return
+    if (isSpinning) return
 
-    console.log('Starting spin...', { spinsUsed, isSpinning, deviceId, isLocalhost })
+    console.log('Starting spin...', { spinsUsed, isSpinning })
     setIsSpinning(true)
 
     try {
       const response = await fetch('/api/spin', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'X-Device-ID': deviceId
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ spinsUsed, deviceId }),
+        body: JSON.stringify({ spinsUsed }),
       })
 
       const data = await response.json()
@@ -118,9 +71,6 @@ export default function Home() {
         setPrizeCounts(data.prizeCounts)
         setSpinsRemaining(data.spinsRemaining)
         setSpinsUsed(spinsUsed + 1)
-        
-        // Mark device as having spun
-        setDeviceHasSpun(true)
         
         // Show result after spinning animation
         setTimeout(() => {
@@ -168,7 +118,7 @@ export default function Home() {
           <div className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-blue-50 rounded-full shadow-md border border-blue-200 mx-4">
             <span className="text-blue-900 font-semibold text-sm sm:text-base">Spins remaining:</span>
             <span className="ml-2 text-xl sm:text-2xl font-bold text-blue-900">
-              {isClient && isLocalhost ? '∞' : spinsRemaining}
+              ∞
             </span>
           </div>
         </div>
@@ -187,10 +137,7 @@ export default function Home() {
               {/* Spin Button */}
               <div className="text-center mt-4 sm:mt-6 lg:mt-8">
                 <button
-                  onClick={(e) => {
-                    console.log('Button clicked!', { spinsUsed, isSpinning, deviceHasSpun, isLocalhost })
-                    handleSpin()
-                  }}
+                  onClick={handleSpin}
                   disabled={isSpinning}
                   className={`w-full sm:w-auto px-6 sm:px-8 lg:px-12 py-3 sm:py-4 text-lg sm:text-xl lg:text-2xl font-bold rounded-xl sm:rounded-2xl transition-all duration-300 ${
                     isSpinning
@@ -200,11 +147,9 @@ export default function Home() {
                 >
                   {isSpinning ? 'Spinning...' : 'SPIN!'}
                 </button>
-                {isClient && isLocalhost && (
-                  <p className="text-xs sm:text-sm text-green-600 mt-2 font-medium">
-                    🧪 Testing Mode - Unlimited Spins
-                  </p>
-                )}
+                <p className="text-xs sm:text-sm text-green-600 mt-2 font-medium">
+                  🎉 Unlimited Spins Available!
+                </p>
               </div>
             </div>
           </div>
