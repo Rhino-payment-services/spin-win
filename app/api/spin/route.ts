@@ -127,7 +127,27 @@ export async function POST(request: NextRequest) {
     await checkAndResetDaily()
     
     const body = await request.json()
-    const { spinsUsed } = body
+    const { spinsUsed, deviceId } = body
+    const deviceFingerprint = request.headers.get('X-Device-ID') || deviceId
+
+    // Check if this device has already spun
+    if (deviceFingerprint) {
+      const existingDevice = await Device.findOne({ deviceId: deviceFingerprint })
+      if (existingDevice && existingDevice.hasSpun) {
+        return NextResponse.json(
+          { error: 'This device has already been used to spin' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Check if user has exceeded spin limit
+    if (spinsUsed >= 1) {
+      return NextResponse.json(
+        { error: 'Maximum spins reached (1 spin allowed)' },
+        { status: 400 }
+      )
+    }
 
     // Get available prizes
     const availablePrizes = await getAvailablePrizes()
@@ -151,9 +171,22 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Record the device as having spun
+    if (deviceFingerprint) {
+      await Device.findOneAndUpdate(
+        { deviceId: deviceFingerprint },
+        { 
+          deviceId: deviceFingerprint,
+          hasSpun: true,
+          spunAt: new Date()
+        },
+        { upsert: true, new: true }
+      )
+    }
+
     // Record the spin
     await SpinRecord.create({
-      deviceId: 'unlimited',
+      deviceId: deviceFingerprint || 'unknown',
       prizeWon: selectedPrize,
       spunAt: new Date()
     })
@@ -193,6 +226,15 @@ export async function GET(request: NextRequest) {
     await connectDB()
     await initializePrizes()
     await checkAndResetDaily()
+    
+    // Check if device has already spun
+    const deviceFingerprint = request.headers.get('X-Device-ID')
+    let deviceHasSpun = false
+    
+    if (deviceFingerprint) {
+      const device = await Device.findOne({ deviceId: deviceFingerprint })
+      deviceHasSpun = device ? device.hasSpun : false
+    }
 
     // Get all prizes with their current status
     const prizes = await Prize.find({})
@@ -217,7 +259,8 @@ export async function GET(request: NextRequest) {
       prizeCounts,
       inventory,
       dailyDistributed,
-      prizeConfig
+      prizeConfig,
+      deviceHasSpun
     })
 
   } catch (error) {

@@ -4,14 +4,76 @@ import { useState, useEffect } from 'react'
 import SpinningWheel from './components/SpinningWheel'
 import ResultModal from './components/ResultModal'
 
+interface PrizeCounts {
+  [key: string]: number
+}
+
 export default function Home() {
   const [spinsUsed, setSpinsUsed] = useState(0)
   const [isSpinning, setIsSpinning] = useState(false)
   const [showResult, setShowResult] = useState(false)
   const [winningPrize, setWinningPrize] = useState('')
+  const [prizeCounts, setPrizeCounts] = useState<PrizeCounts>({})
   const [spinsRemaining, setSpinsRemaining] = useState(1)
+  const [deviceHasSpun, setDeviceHasSpun] = useState(false)
+  const [deviceId, setDeviceId] = useState('')
+  const [isClient, setIsClient] = useState(false)
 
+  // Generate a unique device fingerprint
+  const generateDeviceFingerprint = () => {
+    const fingerprint = {
+      screen: `${window.screen.width}x${window.screen.height}x${window.screen.colorDepth}`,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      language: navigator.language,
+      platform: navigator.platform,
+      hardwareConcurrency: navigator.hardwareConcurrency,
+      deviceMemory: (navigator as any).deviceMemory || 'unknown',
+      userAgent: navigator.userAgent
+    }
+    
+    // Create a hash-like string from the fingerprint
+    const fingerprintString = JSON.stringify(fingerprint)
+    let hash = 0
+    for (let i = 0; i < fingerprintString.length; i++) {
+      const char = fingerprintString.charCodeAt(i)
+      hash = ((hash << 5) - hash) + char
+      hash = hash & hash
+    }
+    return `device_${Math.abs(hash)}`
+  }
 
+  // Check if device has already spun on mount
+  useEffect(() => {
+    // Mark as client-side
+    setIsClient(true)
+    
+    // Generate device fingerprint
+    const fingerprint = generateDeviceFingerprint()
+    setDeviceId(fingerprint)
+    
+    // Check device status with backend
+    const checkDeviceStatus = async () => {
+      try {
+        const response = await fetch('/api/spin', {
+          method: 'GET',
+          headers: {
+            'X-Device-ID': fingerprint
+          }
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          setPrizeCounts(data.prizeCounts || {})
+          setDeviceHasSpun(data.deviceHasSpun || false)
+          setSpinsRemaining(data.deviceHasSpun ? 0 : 1)
+        }
+      } catch (error) {
+        console.error('Error checking device status:', error)
+      }
+    }
+    
+    checkDeviceStatus()
+  }, [])
 
   const prizes = [
     { name: 'Shirt', color: '#8b5cf6', icon: '👕' },      // Purple
@@ -24,18 +86,20 @@ export default function Home() {
   ]
 
   const handleSpin = async () => {
-    if (isSpinning) return
+    // Check if device has already spun
+    if (deviceHasSpun || spinsUsed >= 1 || isSpinning) return
 
-    console.log('Starting spin...', { spinsUsed, isSpinning })
+    console.log('Starting spin...', { spinsUsed, isSpinning, deviceId })
     setIsSpinning(true)
 
     try {
       const response = await fetch('/api/spin', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-Device-ID': deviceId
         },
-        body: JSON.stringify({ spinsUsed }),
+        body: JSON.stringify({ spinsUsed, deviceId }),
       })
 
       const data = await response.json()
@@ -43,8 +107,12 @@ export default function Home() {
 
       if (response.ok) {
         setWinningPrize(data.prize)
+        setPrizeCounts(data.prizeCounts)
         setSpinsRemaining(data.spinsRemaining)
         setSpinsUsed(spinsUsed + 1)
+        
+        // Mark device as having spun
+        setDeviceHasSpun(true)
         
         // Show result after spinning animation
         setTimeout(() => {
@@ -92,7 +160,7 @@ export default function Home() {
           <div className="inline-flex items-center px-3 sm:px-4 lg:px-6 py-2 sm:py-3 bg-blue-50 rounded-full shadow-none sm:shadow-sm border border-blue-200 mx-4">
             <span className="text-blue-900 font-semibold text-xs sm:text-sm lg:text-base">Spins remaining:</span>
             <span className="ml-2 text-lg sm:text-xl lg:text-2xl font-bold text-blue-900">
-              ∞
+              {isClient ? spinsRemaining : 1}
             </span>
           </div>
         </div>
@@ -112,18 +180,24 @@ export default function Home() {
               <div className="text-center mt-3 sm:mt-4 lg:mt-6 xl:mt-8">
                 <button
                   onClick={handleSpin}
-                  disabled={isSpinning}
+                  disabled={isSpinning || deviceHasSpun || spinsUsed >= 1}
                   className={`w-full sm:w-auto px-5 sm:px-6 lg:px-8 xl:px-12 py-2.5 sm:py-3 lg:py-4 text-base sm:text-lg lg:text-xl xl:text-2xl font-bold rounded-lg sm:rounded-xl lg:rounded-2xl transition-all duration-300 ${
-                    isSpinning
+                    isSpinning || deviceHasSpun || spinsUsed >= 1
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-blue-900 text-white hover:bg-blue-800 hover:scale-105 active:scale-95 shadow-none sm:shadow-md hover:shadow-lg'
                   }`}
                 >
-                  {isSpinning ? 'Spinning...' : 'SPIN!'}
+                  {isSpinning ? 'Spinning...' : deviceHasSpun || spinsUsed >= 1 ? 'Already Spun' : 'SPIN!'}
                 </button>
-                <p className="text-xs sm:text-sm text-green-600 mt-1.5 sm:mt-2 font-medium">
-                  🎉 Unlimited Spins Available!
-                </p>
+                {deviceHasSpun || spinsUsed >= 1 ? (
+                  <p className="text-xs sm:text-sm text-red-600 mt-1.5 sm:mt-2 font-medium">
+                    This device has already been used to spin
+                  </p>
+                ) : (
+                  <p className="text-xs sm:text-sm text-green-600 mt-1.5 sm:mt-2 font-medium">
+                    One spin per device
+                  </p>
+                )}
               </div>
             </div>
           </div>
