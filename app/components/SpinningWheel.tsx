@@ -74,7 +74,7 @@ export default function SpinningWheel({ prizes, isSpinning, winningPrize }: Spin
   }, [isSpinning])
 
   return (
-    <div className="modern-wheel-container">
+    <div className="modern-wheel-container w-full max-w-xs sm:max-w-sm lg:max-w-md mx-auto">
       {/* Pointer */}
       <div className="wheel-pointer-modern"></div>
       
@@ -161,7 +161,7 @@ export default function SpinningWheel({ prizes, isSpinning, winningPrize }: Spin
                   y={textY}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  fontSize="24"
+                  fontSize="20"
                   fill="white"
                   fontWeight="bold"
                   style={{
@@ -172,10 +172,10 @@ export default function SpinningWheel({ prizes, isSpinning, winningPrize }: Spin
                 </text>
                 <text
                   x={textX}
-                  y={textY + 25}
+                  y={textY + 20}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  fontSize="12"
+                  fontSize="10"
                   fill="white"
                   fontWeight="bold"
                   style={{

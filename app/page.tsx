@@ -143,12 +143,12 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-white py-12 px-4">
+    <div className="min-h-screen bg-white py-4 sm:py-8 lg:py-12 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-12">
-          <div className="mb-6">
-            <div className="inline-flex items-center justify-center w-20 h-20 mb-4">
+        <div className="text-center mb-6 sm:mb-8 lg:mb-12">
+          <div className="mb-4 sm:mb-6">
+            <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 mb-4">
               <div className="rukapay-logo">
                 <div className="logo-circle">
                   <div className="logo-r">R</div>
@@ -159,25 +159,25 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <h1 className="text-5xl font-bold text-blue-900 mb-4">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-blue-900 mb-3 sm:mb-4 px-4">
             RukaPay Spin & Win
           </h1>
-          <p className="text-xl text-gray-600 mb-4">
+          <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-4 px-4">
             Tap to pay, the Ugandan way. Spin the wheel and win amazing prizes!
           </p>
-          <div className="inline-flex items-center px-6 py-3 bg-blue-50 rounded-full shadow-md border border-blue-200">
-            <span className="text-blue-900 font-semibold">Spins remaining:</span>
-            <span className="ml-2 text-2xl font-bold text-blue-900">
+          <div className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 bg-blue-50 rounded-full shadow-md border border-blue-200 mx-4">
+            <span className="text-blue-900 font-semibold text-sm sm:text-base">Spins remaining:</span>
+            <span className="ml-2 text-xl sm:text-2xl font-bold text-blue-900">
               {isClient && isLocalhost ? '∞' : spinsRemaining}
             </span>
           </div>
         </div>
 
         {/* Main Game Area */}
-        <div className="flex flex-col lg:flex-row gap-12 items-start justify-center">
+        <div className="flex flex-col lg:flex-row gap-6 sm:gap-8 lg:gap-12 items-center lg:items-start justify-center">
           {/* Wheel Container */}
-          <div className="flex-shrink-0">
-            <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-200">
+          <div className="flex-shrink-0 w-full max-w-sm sm:max-w-md lg:max-w-none">
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 shadow-xl border border-gray-200">
               <SpinningWheel
                 prizes={prizes}
                 isSpinning={isSpinning}
@@ -185,14 +185,14 @@ export default function Home() {
               />
               
               {/* Spin Button */}
-              <div className="text-center mt-8">
+              <div className="text-center mt-4 sm:mt-6 lg:mt-8">
                 <button
                   onClick={(e) => {
                     console.log('Button clicked!', { spinsUsed, isSpinning, deviceHasSpun, isLocalhost })
                     handleSpin()
                   }}
                   disabled={isSpinning}
-                  className={`px-12 py-4 text-2xl font-bold rounded-2xl transition-all duration-300 ${
+                  className={`w-full sm:w-auto px-6 sm:px-8 lg:px-12 py-3 sm:py-4 text-lg sm:text-xl lg:text-2xl font-bold rounded-xl sm:rounded-2xl transition-all duration-300 ${
                     isSpinning
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-blue-900 text-white hover:bg-blue-800 hover:scale-105 active:scale-95 shadow-lg hover:shadow-2xl'
@@ -201,7 +201,7 @@ export default function Home() {
                   {isSpinning ? 'Spinning...' : 'SPIN!'}
                 </button>
                 {isClient && isLocalhost && (
-                  <p className="text-sm text-green-600 mt-2 font-medium">
+                  <p className="text-xs sm:text-sm text-green-600 mt-2 font-medium">
                     🧪 Testing Mode - Unlimited Spins
                   </p>
                 )}
@@ -210,7 +210,7 @@ export default function Home() {
           </div>
 
           {/* Prize History */}
-          <div className="flex-1 max-w-md">
+          <div className="flex-1 w-full max-w-md lg:max-w-md">
             <PrizeHistory prizeCounts={prizeCounts} />
           </div>
         </div>
