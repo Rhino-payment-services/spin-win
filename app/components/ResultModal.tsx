@@ -1,7 +1,7 @@
 'use client'
 
-import Lottie from 'lottie-react'
-import congratsAnimation from './wBzLu7Ks6E.json'
+// import Lottie from 'lottie-react'
+// import congratsAnimation from './wBzLu7Ks6E.json'
 
 interface ResultModalProps {
   prize: string
@@ -41,7 +41,7 @@ export default function ResultModal({ prize, onClose, spinsRemaining }: ResultMo
   return (
     <div className="modal-overlay" onClick={onClose}>
       {/* Congratulations Lottie Animation - Fullscreen, only for won prizes */}
-      {!isTryAgain && (
+      {/* {!isTryAgain && (
         <div className="fixed inset-0 pointer-events-none z-40 flex items-start justify-center">
           <Lottie
             animationData={congratsAnimation}
@@ -50,7 +50,7 @@ export default function ResultModal({ prize, onClose, spinsRemaining }: ResultMo
             style={{ width: '100vw', height: '100vh', marginTop: '0' }}
           />
         </div>
-      )}
+      )} */}
       
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         {/* Content with higher z-index */}
