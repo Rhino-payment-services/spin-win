@@ -18,6 +18,7 @@ export default function Home() {
   const [spinsRemaining, setSpinsRemaining] = useState(1)
   const [deviceHasSpun, setDeviceHasSpun] = useState(false)
   const [deviceId, setDeviceId] = useState('')
+  const [isLocalhost, setIsLocalhost] = useState(false)
 
   // Generate a unique device fingerprint
   const generateDeviceFingerprint = () => {
@@ -44,10 +45,15 @@ export default function Home() {
 
   // Check if device has already spun on mount
   useEffect(() => {
+    // Check if running on localhost
+    const hostname = window.location.hostname
+    const isLocal = hostname === 'localhost' || hostname === '127.0.0.1'
+    setIsLocalhost(isLocal)
+    
     const fingerprint = generateDeviceFingerprint()
     setDeviceId(fingerprint)
     
-    // Check with backend if this device has already spun
+    // Check with backend if this device has already spun (only if not localhost)
     const checkDeviceStatus = async () => {
       try {
         const response = await fetch('/api/spin', {
@@ -60,7 +66,7 @@ export default function Home() {
         const data = await response.json()
         const hasSpun = data.deviceHasSpun || false
         
-        if (hasSpun) {
+        if (hasSpun && !isLocal) {
           setDeviceHasSpun(true)
           setSpinsUsed(1)
           setSpinsRemaining(0)
@@ -85,8 +91,6 @@ export default function Home() {
 
   const handleSpin = async () => {
     // Check if device has already spun (only if NOT on localhost)
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    
     if (!isLocalhost && (deviceHasSpun || spinsUsed >= 1) || isSpinning) return
 
     console.log('Starting spin...', { spinsUsed, isSpinning, deviceId, isLocalhost })
@@ -160,7 +164,7 @@ export default function Home() {
           <div className="inline-flex items-center px-6 py-3 bg-blue-50 rounded-full shadow-md border border-blue-200">
             <span className="text-blue-900 font-semibold">Spins remaining:</span>
             <span className="ml-2 text-2xl font-bold text-blue-900">
-              {(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '∞' : spinsRemaining}
+              {isLocalhost ? '∞' : spinsRemaining}
             </span>
           </div>
         </div>
@@ -180,7 +184,6 @@ export default function Home() {
               <div className="text-center mt-8">
                 <button
                   onClick={(e) => {
-                    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
                     console.log('Button clicked!', { spinsUsed, isSpinning, deviceHasSpun, isLocalhost })
                     handleSpin()
                   }}
@@ -193,7 +196,7 @@ export default function Home() {
                 >
                   {isSpinning ? 'Spinning...' : 'SPIN!'}
                 </button>
-                {(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && (
+                {isLocalhost && (
                   <p className="text-sm text-green-600 mt-2 font-medium">
                     🧪 Testing Mode - Unlimited Spins
                   </p>
