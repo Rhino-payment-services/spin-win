@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-// import Lottie from 'lottie-react'
-// import celebrationAnimation from './celebration.json'
+import Lottie from 'lottie-react'
+import celebrationAnimation from './celebration.json'
 
 interface Prize {
   name: string
@@ -18,7 +18,7 @@ interface SpinningWheelProps {
 
 export default function SpinningWheel({ prizes, isSpinning, winningPrize }: SpinningWheelProps) {
   const wheelRef = useRef<HTMLDivElement>(null)
-  // const [showCelebration, setShowCelebration] = useState(false)
+  const [showCelebration, setShowCelebration] = useState(false)
 
   useEffect(() => {
     if (isSpinning && wheelRef.current && winningPrize) {
@@ -50,16 +50,16 @@ export default function SpinningWheel({ prizes, isSpinning, winningPrize }: Spin
         wheel.style.transform = `rotate(${finalRotation}deg)`
         
         // Show celebration animation when wheel stops
-        // const celebrateTimer = setTimeout(() => {
-        //   setShowCelebration(true)
-        //   const hideCelebrationTimer = setTimeout(() => {
-        //     setShowCelebration(false)
-        //   }, 3000) // Hide after 3 seconds
-        //   
-        //   return () => clearTimeout(hideCelebrationTimer)
-        // }, 4000) // Show celebration after wheel stops (4s duration)
+        const celebrateTimer = setTimeout(() => {
+          setShowCelebration(true)
+          const hideCelebrationTimer = setTimeout(() => {
+            setShowCelebration(false)
+          }, 3000) // Hide after 3 seconds
+          
+          return () => clearTimeout(hideCelebrationTimer)
+        }, 4000) // Show celebration after wheel stops (4s duration)
         
-        // return () => clearTimeout(celebrateTimer)
+        return () => clearTimeout(celebrateTimer)
       }
     }
   }, [isSpinning, winningPrize, prizes])
