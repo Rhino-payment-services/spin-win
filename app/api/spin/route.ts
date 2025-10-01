@@ -18,8 +18,8 @@ let prizeInventory: Record<string, number> = {
   'Umbrella': INITIAL_INVENTORY,
   '100k': INITIAL_INVENTORY,
   'Pen': INITIAL_INVENTORY,
-  'Notebook': INITIAL_INVENTORY,
-  'Try Again': INITIAL_INVENTORY
+  'Notebook': INITIAL_INVENTORY
+  // 'Try Again' is not tracked - it's unlimited
 }
 
 // Prize configuration with probabilities
@@ -60,23 +60,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Check if the prize is still in stock
-    if (prizeInventory[winningPrize] <= 0) {
+    // Check if the prize is still in stock (except "Try Again" which is unlimited)
+    if (winningPrize !== 'Try Again' && prizeInventory[winningPrize] <= 0) {
       // If out of stock, give "Try Again" instead
       winningPrize = 'Try Again'
-      
-      // If even "Try Again" is out of stock, return error
-      if (prizeInventory[winningPrize] <= 0) {
-        return NextResponse.json(
-          { error: 'All prizes are out of stock' },
-          { status: 400 }
-        )
-      }
     }
 
-    // Update prize count and decrease inventory
+    // Update prize count
     prizeCounts[winningPrize]++
-    prizeInventory[winningPrize]--
+    
+    // Decrease inventory only for physical prizes (not "Try Again")
+    if (winningPrize !== 'Try Again' && prizeInventory[winningPrize] !== undefined) {
+      prizeInventory[winningPrize]--
+    }
 
     return NextResponse.json({
       prize: winningPrize,

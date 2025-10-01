@@ -41,19 +41,21 @@ export default function Dashboard() {
       const inventory = rawData.inventory || {}
       const prizeCounts = rawData.prizeCounts || {}
       
-      const items: InventoryItem[] = Object.keys(inventory).map(prizeName => {
-        const remaining = inventory[prizeName]
-        const distributed = prizeCounts[prizeName] || 0
-        const percentage = ((remaining / INITIAL_INVENTORY) * 100)
-        
-        return {
-          name: prizeName,
-          remaining,
-          distributed,
-          total: INITIAL_INVENTORY,
-          percentage
-        }
-      })
+      const items: InventoryItem[] = Object.keys(inventory)
+        .filter(prizeName => prizeName !== 'Try Again') // Exclude "Try Again" from inventory
+        .map(prizeName => {
+          const remaining = inventory[prizeName]
+          const distributed = prizeCounts[prizeName] || 0
+          const percentage = ((remaining / INITIAL_INVENTORY) * 100)
+          
+          return {
+            name: prizeName,
+            remaining,
+            distributed,
+            total: INITIAL_INVENTORY,
+            percentage
+          }
+        })
       
       setData({
         items,
