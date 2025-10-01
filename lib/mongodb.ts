@@ -32,7 +32,11 @@ async function connectDB() {
     }
 
     cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongoose) => {
+      console.log('✅ Connected to MongoDB Atlas')
       return mongoose
+    }).catch((error) => {
+      console.error('❌ MongoDB connection error:', error.message)
+      throw error
     })
   }
 
@@ -40,6 +44,7 @@ async function connectDB() {
     cached.conn = await cached.promise
   } catch (e) {
     cached.promise = null
+    console.error('❌ Failed to connect to MongoDB:', e)
     throw e
   }
 

@@ -122,7 +122,10 @@ function selectRandomPrize(availablePrizes: any[]) {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🔄 Attempting to connect to MongoDB Atlas...')
     await connectDB()
+    console.log('✅ MongoDB Atlas connected successfully')
+    
     await initializePrizes()
     await checkAndResetDaily()
     
@@ -213,9 +216,12 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error in spin API:', error)
+    console.error('❌ Error in spin API:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Database connection failed', 
+        details: process.env.NODE_ENV === 'development' ? error.message : 'Please check your database configuration'
+      },
       { status: 500 }
     )
   }
