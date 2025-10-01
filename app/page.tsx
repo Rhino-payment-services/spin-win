@@ -18,12 +18,13 @@ export default function Home() {
   const [spinsRemaining, setSpinsRemaining] = useState(1)
 
   const prizes = [
-    { name: 'Cap', color: '#8b5cf6', icon: '🧢' },        // Purple
-    { name: 'Notebook', color: '#f97316', icon: '📓' },   // Orange-red
+    { name: 'Shirt', color: '#8b5cf6', icon: '👕' },      // Purple
+    { name: 'Book', color: '#f97316', icon: '📚' },       // Orange-red
+    { name: 'Wristband', color: '#10b981', icon: '⌚' },   // Lime green
     { name: 'Try Again', color: '#3b82f6', icon: '🔄' },  // Blue
     { name: 'Pen', color: '#f59e0b', icon: '✏️' },        // Bright orange
-    { name: 'Umbrella', color: '#ec4899', icon: '☂️' },   // Hot pink
-    { name: '100k', color: '#10b981', icon: '💰' }        // Lime green
+    { name: 'Cap', color: '#ec4899', icon: '🧢' },        // Hot pink
+    { name: 'Umbrella', color: '#14b8a6', icon: '☂️' }    // Teal
   ]
 
   const handleSpin = async () => {

@@ -9,6 +9,9 @@ interface InventoryItem {
   distributed: number
   total: number
   percentage: number
+  dailyDistributed: number
+  dailyLimit: number
+  dailyPercentage: number
 }
 
 interface DashboardData {
@@ -37,23 +40,32 @@ export default function Dashboard() {
       const rawData = await response.json()
       
       // Process the data
-      const INITIAL_INVENTORY = 1000
       const inventory = rawData.inventory || {}
       const prizeCounts = rawData.prizeCounts || {}
+      const dailyDistributed = rawData.dailyDistributed || {}
+      const prizeConfig = rawData.prizeConfig || {}
       
       const items: InventoryItem[] = Object.keys(inventory)
         .filter(prizeName => prizeName !== 'Try Again') // Exclude "Try Again" from inventory
         .map(prizeName => {
           const remaining = inventory[prizeName]
           const distributed = prizeCounts[prizeName] || 0
-          const percentage = ((remaining / INITIAL_INVENTORY) * 100)
+          const config = prizeConfig[prizeName]
+          const total = config?.total || 0
+          const dailyLimit = config?.dailyLimit || 0
+          const dailyDist = dailyDistributed[prizeName] || 0
+          const percentage = total > 0 ? ((remaining / total) * 100) : 0
+          const dailyPercentage = dailyLimit > 0 ? ((dailyDist / dailyLimit) * 100) : 0
           
           return {
             name: prizeName,
             remaining,
             distributed,
-            total: INITIAL_INVENTORY,
-            percentage
+            total,
+            percentage,
+            dailyDistributed: dailyDist,
+            dailyLimit,
+            dailyPercentage
           }
         })
       
@@ -82,11 +94,12 @@ export default function Dashboard() {
 
   const getPrizeEmoji = (prizeName: string) => {
     switch (prizeName) {
+      case 'Shirt': return '👕'
+      case 'Book': return '📚'
+      case 'Wristband': return '⌚'
       case 'Cap': return '🧢'
       case 'Umbrella': return '☂️'
-      case '100k': return '💰'
       case 'Pen': return '✏️'
-      case 'Notebook': return '📓'
       case 'Try Again': return '🔄'
       default: return '🎁'
     }
@@ -218,59 +231,83 @@ export default function Dashboard() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Prize</th>
-                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">Remaining</th>
-                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">Distributed</th>
-                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">Total Cap</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Stock Level</th>
-                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">Status</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">Total Remaining</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">Total Distributed</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">Daily Distributed</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">Daily Limit</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Total Stock Level</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Daily Usage</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {data?.items.map((item) => (
-                  <tr key={item.name} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{getPrizeEmoji(item.name)}</span>
-                        <span className="font-medium text-gray-900">{item.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <span className="text-lg font-bold text-blue-900">
-                        {item.remaining.toLocaleString()}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <span className="text-lg font-semibold text-green-600">
-                        {item.distributed.toLocaleString()}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <span className="text-gray-600">{item.total.toLocaleString()}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="w-full">
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-xs text-gray-600">
-                            {item.percentage.toFixed(1)}%
-                          </span>
+                {data?.items.map((item) => {
+                  const dailyRemaining = item.dailyLimit - item.dailyDistributed
+                  const dailyPercentageUsed = item.dailyLimit > 0 ? ((item.dailyDistributed / item.dailyLimit) * 100) : 0
+                  
+                  return (
+                    <tr key={item.name} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">{getPrizeEmoji(item.name)}</span>
+                          <span className="font-medium text-gray-900">{item.name}</span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                          <div
-                            className={`h-full ${getStatusColor(item.percentage)} transition-all duration-500`}
-                            style={{ width: `${item.percentage}%` }}
-                          ></div>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className="text-lg font-bold text-blue-900">
+                          {item.remaining.toLocaleString()} / {item.total.toLocaleString()}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className="text-lg font-semibold text-green-600">
+                          {item.distributed.toLocaleString()}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className="text-lg font-semibold text-orange-600">
+                          {item.dailyDistributed.toLocaleString()}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className="text-gray-700">
+                          {item.dailyDistributed.toLocaleString()} / {item.dailyLimit.toLocaleString()}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="w-full">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-xs text-gray-600">
+                              {item.percentage.toFixed(1)}%
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                            <div
+                              className={`h-full ${getStatusColor(item.percentage)} transition-all duration-500`}
+                              style={{ width: `${item.percentage}%` }}
+                            ></div>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <span
-                        className={`inline-block px-3 py-1 rounded-full text-xs font-semibold text-white ${getStatusColor(item.percentage)}`}
-                      >
-                        {getStatusText(item.percentage)}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="w-full">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-xs text-gray-600">
+                              {dailyPercentageUsed.toFixed(1)}%
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                            <div
+                              className={`h-full ${dailyPercentageUsed >= 100 ? 'bg-red-500' : dailyPercentageUsed >= 75 ? 'bg-orange-500' : 'bg-blue-500'} transition-all duration-500`}
+                              style={{ width: `${Math.min(dailyPercentageUsed, 100)}%` }}
+                            ></div>
+                          </div>
+                          <div className="text-xs text-center mt-1 text-gray-600">
+                            {dailyRemaining} left today
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -279,7 +316,7 @@ export default function Dashboard() {
         {/* Footer Note */}
         <div className="mt-8 text-center text-gray-500 text-sm">
           <p>Dashboard auto-refreshes every 5 seconds</p>
-          <p className="mt-1">Initial inventory cap: 1,000 items per prize</p>
+          <p className="mt-1">Daily limits reset automatically at midnight</p>
         </div>
       </div>
     </div>

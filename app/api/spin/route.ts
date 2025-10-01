@@ -2,40 +2,77 @@ import { NextRequest, NextResponse } from 'next/server'
 
 // In-memory storage for prize tracking (won prizes)
 let prizeCounts: Record<string, number> = {
+  'Shirt': 0,
+  'Book': 0,
+  'Pen': 0,
   'Cap': 0,
   'Umbrella': 0,
-  '100k': 0,
-  'Pen': 0,
-  'Notebook': 0,
+  'Wristband': 0,
   'Try Again': 0
 }
 
-// Inventory management - starting caps for each prize
-const INITIAL_INVENTORY = 1000
+// Inventory management - total caps and daily limits for each prize
+const prizeConfig = {
+  'Shirt': { total: 50, dailyLimit: 5 },
+  'Book': { total: 50, dailyLimit: 5 },
+  'Pen': { total: 40, dailyLimit: 4 },
+  'Cap': { total: 40, dailyLimit: 4 },
+  'Umbrella': { total: 40, dailyLimit: 4 },
+  'Wristband': { total: 200, dailyLimit: 18 }
+  // 'Try Again' is not tracked - it's unlimited
+}
 
 let prizeInventory: Record<string, number> = {
-  'Cap': INITIAL_INVENTORY,
-  'Umbrella': INITIAL_INVENTORY,
-  '100k': INITIAL_INVENTORY,
-  'Pen': INITIAL_INVENTORY,
-  'Notebook': INITIAL_INVENTORY
-  // 'Try Again' is not tracked - it's unlimited
+  'Shirt': 50,
+  'Book': 50,
+  'Pen': 40,
+  'Cap': 40,
+  'Umbrella': 40,
+  'Wristband': 200
+}
+
+// Daily tracking - resets every day
+let dailyDistributed: Record<string, number> = {
+  'Shirt': 0,
+  'Book': 0,
+  'Pen': 0,
+  'Cap': 0,
+  'Umbrella': 0,
+  'Wristband': 0
+}
+
+let lastResetDate = new Date().toDateString()
+
+// Function to reset daily counts if it's a new day
+function checkAndResetDaily() {
+  const today = new Date().toDateString()
+  if (today !== lastResetDate) {
+    // Reset all daily counts
+    Object.keys(dailyDistributed).forEach(key => {
+      dailyDistributed[key] = 0
+    })
+    lastResetDate = today
+  }
 }
 
 // Prize configuration with probabilities
 const prizes = [
-  { name: 'Cap', probability: 30 },
-  { name: 'Notebook', probability: 25 },
-  { name: 'Try Again', probability: 25 },
+  { name: 'Shirt', probability: 20 },
+  { name: 'Book', probability: 20 },
+  { name: 'Wristband', probability: 20 },
+  { name: 'Try Again', probability: 15 },
   { name: 'Pen', probability: 10 },
-  { name: 'Umbrella', probability: 9 },
-  { name: '100k', probability: 1 }
+  { name: 'Cap', probability: 10 },
+  { name: 'Umbrella', probability: 5 }
 ]
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { spinsUsed } = body
+
+    // Check and reset daily counts if it's a new day
+    checkAndResetDaily()
 
     // Check if user has exceeded spin limit
     if (spinsUsed >= 1) {
@@ -60,18 +97,27 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Check if the prize is still in stock (except "Try Again" which is unlimited)
-    if (winningPrize !== 'Try Again' && prizeInventory[winningPrize] <= 0) {
-      // If out of stock, give "Try Again" instead
-      winningPrize = 'Try Again'
+    // Check if the prize is still available (except "Try Again" which is unlimited)
+    if (winningPrize !== 'Try Again') {
+      const config = prizeConfig[winningPrize]
+      
+      // Check total inventory
+      if (prizeInventory[winningPrize] <= 0) {
+        winningPrize = 'Try Again'
+      }
+      // Check daily limit
+      else if (dailyDistributed[winningPrize] >= config.dailyLimit) {
+        winningPrize = 'Try Again'
+      }
     }
 
     // Update prize count
     prizeCounts[winningPrize]++
     
-    // Decrease inventory only for physical prizes (not "Try Again")
+    // Decrease inventory and update daily count only for physical prizes (not "Try Again")
     if (winningPrize !== 'Try Again' && prizeInventory[winningPrize] !== undefined) {
       prizeInventory[winningPrize]--
+      dailyDistributed[winningPrize]++
     }
 
     return NextResponse.json({
@@ -88,18 +134,14 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  // Return current prize counts and inventory
+  // Check and reset daily counts if it's a new day
+  checkAndResetDaily()
+  
+  // Return current prize counts, inventory, daily limits, and config
   return NextResponse.json({
     prizeCounts: { ...prizeCounts },
-    inventory: { ...prizeInventory }
-  })
-}
-
-// Export inventory data for dashboard access
-export function getInventoryData() {
-  return {
-    prizeCounts: { ...prizeCounts },
     inventory: { ...prizeInventory },
-    initialInventory: INITIAL_INVENTORY
-  }
+    dailyDistributed: { ...dailyDistributed },
+    prizeConfig: { ...prizeConfig }
+  })
 }

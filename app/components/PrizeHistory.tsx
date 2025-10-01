@@ -16,23 +16,25 @@ interface Prize {
 export default function PrizeHistory({ prizeCounts }: PrizeHistoryProps) {
   const getPrizeEmoji = (prizeName: string) => {
     switch (prizeName) {
+      case 'Shirt': return '👕'
+      case 'Book': return '📚'
+      case 'Wristband': return '⌚'
       case 'Cap': return '🧢'
       case 'Umbrella': return '☂️'
-      case '100k': return '💰'
       case 'Pen': return '✏️'
-      case 'Notebook': return '📓'
       case 'Try Again': return '🔄'
       default: return '🎁'
     }
   }
 
   const prizes: Prize[] = [
-    { name: 'Cap', icon: '🧢' },
-    { name: 'Notebook', icon: '📓' },
+    { name: 'Shirt', icon: '👕' },
+    { name: 'Book', icon: '📚' },
+    { name: 'Wristband', icon: '⌚' },
     { name: 'Try Again', icon: '🔄' },
     { name: 'Pen', icon: '✏️' },
-    { name: 'Umbrella', icon: '☂️' },
-    { name: '100k', icon: '💰' }
+    { name: 'Cap', icon: '🧢' },
+    { name: 'Umbrella', icon: '☂️' }
   ]
 
   const totalPrizes = Object.values(prizeCounts).reduce((sum, count) => sum + count, 0)
