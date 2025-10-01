@@ -1,0 +1,317 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 255, 255, 255;
+  --background-end-rgb: 255, 255, 255;
+  --dark-blue: #1e3a8a;
+  --light-blue: #3b82f6;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Modern Clean Wheel Styles */
+.modern-wheel-container {
+  position: relative;
+  width: 450px;
+  height: 450px;
+  margin: 0 auto;
+}
+
+.modern-wheel {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  position: relative;
+  overflow: hidden;
+  transition: transform 4s cubic-bezier(0.23, 1, 0.32, 1);
+  border: 3px solid #d1d5db;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  background: transparent;
+  margin: 0;
+  padding: 0;
+}
+
+.wheel-svg {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.modern-segment {
+  position: absolute;
+  width: 52%;
+  height: 52%;
+  transform-origin: 100% 100%;
+  clip-path: polygon(-1% -1%, 101% -1%, 50% 101%);
+  border: none;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.segment-content-modern {
+  position: absolute;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.prize-icon {
+  font-size: 24px;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8));
+  line-height: 1;
+}
+
+.prize-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  max-width: 70px;
+  line-height: 1.1;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+.wheel-center-modern {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120px;
+  height: 120px;
+  background: #f8fafc;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  border: 3px solid #e5e7eb;
+}
+
+.spin-button-container {
+  text-align: center;
+}
+
+.spin-button {
+  width: 80px;
+  height: 80px;
+  background: #f3f4f6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #d1d5db;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.spin-text {
+  color: #374151;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.wheel-pointer-modern {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-top: 35px solid white;
+  z-index: 15;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+/* RukaPay Logo Styles */
+.rukapay-logo {
+  width: 80px;
+  height: 80px;
+  position: relative;
+}
+
+.logo-circle {
+  width: 100%;
+  height: 100%;
+  background: #1e3a8a;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.logo-r {
+  color: white;
+  font-size: 32px;
+  font-weight: 900;
+  font-family: 'Arial', sans-serif;
+  position: relative;
+  z-index: 3;
+}
+
+.logo-accent {
+  position: absolute;
+  border: 2px solid white;
+  border-radius: 50%;
+  opacity: 0.7;
+}
+
+.accent-1 {
+  width: 60px;
+  height: 60px;
+  top: 10px;
+  left: 10px;
+  border-top: 2px solid white;
+  border-right: 2px solid white;
+  border-bottom: none;
+  border-left: none;
+}
+
+.accent-2 {
+  width: 70px;
+  height: 70px;
+  top: 5px;
+  left: 5px;
+  border-bottom: 2px solid white;
+  border-left: 2px solid white;
+  border-top: none;
+  border-right: none;
+}
+
+.logo-horn {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  width: 8px;
+  height: 12px;
+  border-top: 2px solid white;
+  border-right: 2px solid white;
+  transform: rotate(45deg);
+  z-index: 4;
+}
+
+/* Celebration Animation */
+.celebration-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1000;
+  overflow: hidden;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.celebration-lottie-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Lottie animations are now handled by the lottie-react library */
+
+/* Modal styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+}
+
+/* Modern Prize history styles */
+.prize-history {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+.prize-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.prize-item:last-child {
+  border-bottom: none;
+}
+
+.prize-item span:first-child {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 1rem;
+}
+
+.prize-item span:last-child {
+  background: #1e3a8a;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  font-size: 0.875rem;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(30, 58, 138, 0.3);
+}
