@@ -18,32 +18,46 @@ export default function Home() {
   const [spinsRemaining, setSpinsRemaining] = useState(1)
   const [deviceHasSpun, setDeviceHasSpun] = useState(false)
   const [deviceId, setDeviceId] = useState('')
+  const [isClient, setIsClient] = useState(false)
 
   // Generate a unique device fingerprint
   const generateDeviceFingerprint = () => {
-    const fingerprint = {
-      screen: `${window.screen.width}x${window.screen.height}x${window.screen.colorDepth}`,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      language: navigator.language,
-      platform: navigator.platform,
-      hardwareConcurrency: navigator.hardwareConcurrency,
-      deviceMemory: (navigator as any).deviceMemory || 'unknown',
-      userAgent: navigator.userAgent
+    // Check if we're in the browser
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+      return `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     }
-    
-    // Create a hash-like string from the fingerprint
-    const fingerprintString = JSON.stringify(fingerprint)
-    let hash = 0
-    for (let i = 0; i < fingerprintString.length; i++) {
-      const char = fingerprintString.charCodeAt(i)
-      hash = ((hash << 5) - hash) + char
-      hash = hash & hash
+
+    try {
+      const fingerprint = {
+        screen: `${window.screen.width}x${window.screen.height}x${window.screen.colorDepth}`,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        language: navigator.language,
+        platform: navigator.platform,
+        hardwareConcurrency: navigator.hardwareConcurrency,
+        deviceMemory: (navigator as any).deviceMemory || 'unknown',
+        userAgent: navigator.userAgent
+      }
+      
+      // Create a hash-like string from the fingerprint
+      const fingerprintString = JSON.stringify(fingerprint)
+      let hash = 0
+      for (let i = 0; i < fingerprintString.length; i++) {
+        const char = fingerprintString.charCodeAt(i)
+        hash = ((hash << 5) - hash) + char
+        hash = hash & hash
+      }
+      return `device_${Math.abs(hash)}`
+    } catch (error) {
+      console.warn('Error generating device fingerprint:', error)
+      return `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     }
-    return `device_${Math.abs(hash)}`
   }
 
   // Check if device has already spun on mount
   useEffect(() => {
+    // Set client-side flag
+    setIsClient(true)
+    
     const fingerprint = generateDeviceFingerprint()
     setDeviceId(fingerprint)
     
@@ -130,6 +144,18 @@ export default function Home() {
 
   const closeModal = () => {
     setShowResult(false)
+  }
+
+  // Show loading state during hydration
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-lg text-gray-600">Loading RukaPay Spin & Win...</p>
+        </div>
+      </div>
+    )
   }
 
   return (

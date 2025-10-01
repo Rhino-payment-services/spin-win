@@ -220,7 +220,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { 
         error: 'Database connection failed', 
-        details: process.env.NODE_ENV === 'development' ? error.message : 'Please check your database configuration'
+        details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : 'Please check your database configuration'
       },
       { status: 500 }
     )
