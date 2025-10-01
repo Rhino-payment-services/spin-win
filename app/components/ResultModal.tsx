@@ -1,7 +1,7 @@
 'use client'
 
 import Lottie from 'lottie-react'
-import congratsAnimation from './congrats_summer.json'
+import congratsAnimation from './wBzLu7Ks6E.json'
 
 interface ResultModalProps {
   prize: string
