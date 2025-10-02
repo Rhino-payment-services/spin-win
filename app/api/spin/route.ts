@@ -196,7 +196,7 @@ export async function POST(request: NextRequest) {
       switch (prize) {
         case 'Shirt': return 'Congratulations! You won a RukaPay T-Shirt! 👕'
         case 'Book': return 'Amazing! You won a RukaPay Book! 📚'
-        case 'Wristband': return 'Awesome! You won a RukaPay Wristband! ⌚'
+        case 'Wristband': return 'Awesome! You won a RukaPay Wristband! 🎗️'
         case 'Cap': return 'Great! You won a RukaPay Cap! 🧢'
         case 'Umbrella': return 'Nice! You won a RukaPay Umbrella! ☂️'
         case 'Pen': return 'Cool! You won a RukaPay Pen! ✏️'

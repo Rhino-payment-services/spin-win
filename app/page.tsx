@@ -78,7 +78,7 @@ export default function Home() {
   const prizes = [
     { name: 'Shirt', color: '#8b5cf6', icon: '👕' },      // Purple
     { name: 'Book', color: '#f97316', icon: '📚' },       // Orange-red
-    { name: 'Wristband', color: '#10b981', icon: '⌚' },   // Lime green
+    { name: 'Wristband', color: '#10b981', icon: '🎗️' },   // Lime green
     { name: 'Try Again', color: '#3b82f6', icon: '🔄' },  // Blue
     { name: 'Pen', color: '#f59e0b', icon: '✏️' },        // Bright orange
     { name: 'Cap', color: '#ec4899', icon: '🧢' },        // Hot pink

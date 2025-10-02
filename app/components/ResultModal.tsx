@@ -14,7 +14,7 @@ export default function ResultModal({ prize, onClose, spinsRemaining }: ResultMo
     switch (prizeName) {
       case 'Shirt': return '👕'
       case 'Book': return '📚'
-      case 'Wristband': return '⌚'
+      case 'Wristband': return '🎗️'
       case 'Cap': return '🧢'
       case 'Umbrella': return '☂️'
       case 'Pen': return '✏️'
